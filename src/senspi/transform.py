@@ -1,0 +1,155 @@
+"""
+Fill in default values, transform raw readouts.
+"""
+
+import logging
+from collections.abc import Callable, Generator, Mapping
+from typing import Any
+
+log = logging.getLogger(__name__)
+
+type SchemaType = Mapping[str, Any]
+type ParameterType = Mapping[str, Any] | list[Any]
+type Number = float | int
+type ValueType = Number | str | list[Any] | Mapping[str, Any]
+type ReaderType = Callable[[], ValueType]
+
+
+def not_special(kv_tuple: tuple[str, Any]) -> bool:
+    """A predicate that identifies dictionary items (key-value tuples)
+    that are not considered 'special' in the sensor schema, i.e. whose
+    key does not start with a '@' character
+    """
+
+    if kv_tuple[0].startswith("@"):
+        return False
+    else:
+        return True
+
+
+def add_defaults(schema: SchemaType, parameters: ParameterType) -> ParameterType:
+    """
+    Add default values from the schema to the parameters.
+    """
+    typ = schema.get("@type", None)
+    if typ == "map":
+        items = {}
+        assert isinstance(parameters, Mapping)
+        for k, v in filter(not_special, schema.items()):
+            items[k] = add_defaults(v, parameters.get(k, {}))
+        items["@type"] = "map"
+        return items
+    elif typ == "array":
+        element_type = schema.get("@items", None)
+        element = add_defaults(element_type, parameters)
+        return {"@type": "array", "@items": element}
+    elif typ == "tuple":
+        items = []
+        para_idx = 0
+        assert isinstance(parameters, list)
+        for element_type in schema.get("@items", []):
+            items.append(add_defaults(element_type, parameters[para_idx]))
+            para_idx += 1
+        return {"@type": "tuple", "@items": items}
+    elif typ == "float" or typ == "string":
+        assert isinstance(parameters, Mapping)
+        defaults = schema.get("@defaults", {})
+        parms = parameters.get("@parameters", {})
+        return {"@type": typ, "@parameters": defaults | parms}
+    else:
+        raise ValueError(f"add_defaults error unknown type {typ} in {schema}")
+
+
+def walk(
+    root: list[str], value: ValueType, param_map: ParameterType
+) -> Generator[tuple[list[str], ValueType, ParameterType]]:
+    #    print(f"\n\nroot={root}, \nval={value}, \nparms={param_map}")
+    if isinstance(value, dict):
+        assert isinstance(param_map, Mapping)
+        for k, v in filter(not_special, value.items()):
+            yield from walk(root + [k], v, param_map.get(k, None))
+    elif isinstance(value, list):
+        param_index = 0
+        for item in value:
+            if isinstance(param_map, list):
+                param = param_map[param_index]
+            else:
+                param = param_map
+            yield from walk(root + [str(param_index)], item, param)
+            param_index += 1
+    elif isinstance(value, str | int | float):
+        yield root, value, param_map
+    else:
+        print(f"return on {type(value)}")
+
+
+def transform(value: ValueType, param_map: ParameterType) -> ValueType:
+    """Transform a value according to a map of parameters
+
+    For numbers, apply a linear transformation.
+    For strings, convert case and/or trim.
+
+    If the current value is not significantly different
+    from the previous value, flag the returned value
+    as filtered.
+
+    Return a new map of the same structure as `value_map`
+    """
+
+    if isinstance(value, dict):
+        out_map = {}
+        for k, v in value.items():
+            assert isinstance(param_map, Mapping)
+            if k in param_map:
+                out_map[k] = transform(v, param_map[k])
+            else:
+                out_map[k] = v
+        return out_map
+    elif isinstance(value, list):
+        out_list = []
+        param_index = 0
+        for item in value:
+            if isinstance(param_map, dict):
+                params = param_map
+            else:
+                assert isinstance(param_map, list)
+                params = param_map[param_index]
+            if params is not None:
+                out_list.append(transform(item, params))
+            else:
+                out_list.append(item)
+            param_index = param_index + 1
+        return out_list
+    elif isinstance(value, int | float):
+        assert isinstance(param_map, Mapping)
+        p = param_map.get("@parameters", {})
+        offset = p.get("offset", 0.0)
+        multiplier = p.get("multiplier", 1.0)
+        divisor = p.get("divisor", 1.0)
+        new_value = (value - offset) * multiplier / divisor
+        return new_value
+    elif isinstance(value, str):
+        assert isinstance(param_map, Mapping)
+        p = param_map.get("@parameters", {})
+        target_case = p.get("case", None)
+        if target_case == "upper":
+            string_value = value.upper()
+        elif target_case == "lower":
+            string_value = value.lower()
+        else:
+            string_value = value
+        target_length = p.get("trim", None)
+        if target_length is not None:
+            assert isinstance(string_value, str)
+            try:
+                target_length = int(target_length)
+                if target_length < 1:
+                    log.warning(f"trim value too low: {target_length}, ignoring")
+                else:
+                    string_value = string_value[:target_length]
+            except ValueError:
+                msg = f"String length not a number: {target_length}, ignoring"
+                log.error(msg)
+        return string_value
+    else:
+        return value

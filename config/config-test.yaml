@@ -1,0 +1,116 @@
+renderers:
+  right:
+    type: osc
+    host: 127.0.0.1
+    port: 53280
+    settings:
+      - pitchbend_down:
+        address: /params/a/pitchbend_down
+        value: 2.0
+      - pitchbend_up:
+        address: /params/a/pitchbend_up
+        value: 2.0
+  left:
+    type: osc
+    host: 127.0.0.1
+    port: 53290
+    settings:
+      - address: /params/a/pitchbend_down
+        value: 0.0
+      - address: /params/a/pitchbend_up
+        value: 0.0
+controllers:
+  exq1:
+    name: "Exquis.*20:0"
+    renderer: left
+    control-changes:
+      cc42:
+        renderer: right
+        divisor: 128
+        address: /param/a/mixer/noise/volume
+  exq2:
+    name: "Exquis MIDI 1 24:0"
+    renderer: right
+  oxygen:
+    name: "usb oxygen"
+    renderer: right
+sensors:
+  pushpull:
+    reader:
+      driver: pushpull.ads1220
+    transform:
+      offset: -2000
+      divisor: 2000
+    renderer: right
+    address: /param/a/mixer/noise/volume
+  accel:
+    reader:
+      driver: accelerometer.mpu6050
+      parameters:
+        gain: 64
+    transform:
+      acceleration:
+        x:
+          "@parameters":
+            divisor: -9.81
+            offset: 9.81
+            address: /param/a/mixer/noise/volumemu
+        y:
+          "@parameters":
+            divisor: 9.81
+        z:
+          "@parameters":
+            divisor: 9.81
+      giroscope:
+        "@parameters":
+          - divisor: 1000.0
+          - null
+          - multiplier: 10
+      temperature:
+        "@parameters":
+          offset: 278.1 # give the temperature in Kelvin
+    renderer: right
+    timeout: 0.02
+  fake:
+    reader:
+      driver: mock_sensors.constant_number_readout
+      parameters:
+        gain: 100
+    transform:
+      "@parameters":
+        divisor: 2.0
+        address: /param/fake
+    renderer: right
+    timeout: 1.0
+  fake_composite:
+    reader:
+      driver: mock_sensors.composite_readout
+      parameters:
+        offset: 1000
+    transform:
+      acceleration: # a map
+        z: # use defaults for parameter x and y
+          "@parameters":
+            multiplier: 2.0
+            address: /param/global/volume
+      giroscope: # sequence of like items - use the same transform
+        "@parameters":
+          offset: 1000.0
+          divisor: 10.0
+          address: /param/a/mixer/noise/volume
+      # use defaults for temperature
+      atmosphere: # tuple of items of distinct types
+        - "@parameters":
+            divisor: 5.0
+            address: /param/atmo/num
+        - "@parameters":
+            case: upper
+            trim: 4
+            address: /param/atmo/str
+      temperature:
+        "@parameters":
+          offset: 278.1 # give the temperature in Kelvin
+          address: /param/temperature
+    renderer: right
+backchannel: 53281 # port for backchannel
+
