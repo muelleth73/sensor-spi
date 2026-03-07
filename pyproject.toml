@@ -154,6 +154,7 @@ reportUnreachable = false
 # reportUnnecessaryIsInstance = false
 # reportUnknownVariableType = false
 # reportUnknownArgumentType = false
+failOnWarnings = false
 
 [tool.codespell]
 # Add here as needed:

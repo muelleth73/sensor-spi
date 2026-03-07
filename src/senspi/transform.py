@@ -8,10 +8,10 @@ from typing import Any
 
 log = logging.getLogger(__name__)
 
-type SchemaType = Mapping[str, Any]
+type SchemaType = Mapping[str, SchemaType | list[SchemaType] | str | float | int]
 type ParameterType = Mapping[str, Any] | list[Any]
 type Number = float | int
-type ValueType = Number | str | list[Any] | Mapping[str, Any]
+type ValueType = Number | str | list[ValueType] | Mapping[str, ValueType]
 type ReaderType = Callable[[], ValueType]
 
 
@@ -36,26 +36,31 @@ def add_defaults(schema: SchemaType, parameters: ParameterType) -> ParameterType
         items = {}
         assert isinstance(parameters, Mapping)
         for k, v in filter(not_special, schema.items()):
+            assert isinstance(v, Mapping)
             items[k] = add_defaults(v, parameters.get(k, {}))
         items["@type"] = "map"
         return items
     elif typ == "array":
-        element_type = schema.get("@items", None)
+        element_type = schema.get("@items", {})
+        assert isinstance(element_type, Mapping)
         element = add_defaults(element_type, parameters)
         return {"@type": "array", "@items": element}
     elif typ == "tuple":
         items = []
         para_idx = 0
         assert isinstance(parameters, list)
-        for element_type in schema.get("@items", []):
+        tuple_items = schema.get("@items", {})
+        assert isinstance(tuple_items, list)
+        for element_type in tuple_items:
+            assert isinstance(element_type, Mapping)
             items.append(add_defaults(element_type, parameters[para_idx]))
             para_idx += 1
         return {"@type": "tuple", "@items": items}
     elif typ == "float" or typ == "string":
         assert isinstance(parameters, Mapping)
         defaults = schema.get("@defaults", {})
-        parms = parameters.get("@parameters", {})
-        return {"@type": typ, "@parameters": defaults | parms}
+        params = parameters.get("@parameters", {})
+        return {"@type": typ, "@parameters": defaults | params}
     else:
         raise ValueError(f"add_defaults error unknown type {typ} in {schema}")
 

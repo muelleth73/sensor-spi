@@ -1,12 +1,4 @@
-# sensorconfig
-
-👉\[\[\[**This is the initial readme for your
-[simple-modern-uv](https://github.com/jlevy/simple-modern-uv) template.** Fill it in and
-delete this message!
-Below are general setup instructions that you may remove or keep and adapt for your
-project.\]\]\]
-
-* * *
+# senor-spi
 
 ## Project Docs
 
@@ -16,7 +8,4 @@ For development workflows, see [development.md](docs/development.md).
 
 For instructions on publishing to PyPI, see [publishing.md](docs/publishing.md).
 
-* * *
-
-*This project was built from
-[simple-modern-uv](https://github.com/jlevy/simple-modern-uv).*
+_This project was built from [simple-modern-uv](https://github.com/jlevy/simple-modern-uv)._

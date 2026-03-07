@@ -5,14 +5,14 @@ from typing import Any
 import senspi.mock.constant_number_readout as num_sens
 import senspi.mock.constant_string_readout as str_sens
 from senspi.constants import NUMBER_PARAMETERS, STRING_PARAMETERS
-from senspi.transform import ReaderType, ValueType, not_special, transform
+from senspi.transform import ReaderType, SchemaType, ValueType, not_special, transform
 
 """
 A sensor that returns a complex, constant value.
 Useful for testing.
 """
 
-SCHEMA = {
+SCHEMA: SchemaType = {
     "@type": "map",  # map with string keys
     "acceleration": {
         "@type": "map",

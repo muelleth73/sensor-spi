@@ -10,23 +10,23 @@ import senspi.transform as xf
 
 
 @pytest.fixture
-def config_fxt():
+def config_fxt() -> xf.SchemaType:
     config = cfg.get_config(Path("./config/config-test.yaml"))
     return config
 
 
 @pytest.fixture
-def sensors_fxt(config_fxt):
+def sensors_fxt(config_fxt) -> xf.SchemaType:
     return config_fxt["sensors"]
 
 
 @pytest.fixture
-def transform_fxt(sensors_fxt):
+def transform_fxt(sensors_fxt) -> xf.SchemaType:
     return sensors_fxt["fake_composite"]["transform"]
 
 
 @pytest.fixture
-def num_param_fxt(transform_fxt):
+def num_param_fxt(transform_fxt) -> xf.SchemaType:
     return {
         "params": transform_fxt["temperature"],
         "schema": num_faker.SCHEMA,
@@ -34,7 +34,7 @@ def num_param_fxt(transform_fxt):
 
 
 @pytest.fixture
-def str_param_fxt(transform_fxt):
+def str_param_fxt(transform_fxt) -> xf.SchemaType:
     return {
         "params": transform_fxt["atmosphere"][1],
         "schema": str_faker.SCHEMA,
@@ -42,18 +42,11 @@ def str_param_fxt(transform_fxt):
 
 
 @pytest.fixture
-def composite_param_fxt(transform_fxt):
+def composite_param_fxt(transform_fxt) -> xf.SchemaType:
     return {
         "params": transform_fxt,
         "schema": composite_faker.SCHEMA,
     }
-
-
-@pytest.fixture
-def composite_proc_builder_fxt(composite_param_fxt):
-    p = composite_param_fxt["params"]
-    s = composite_param_fxt["schema"]
-    return xf.add_defaults(s, p)
 
 
 # ---------------------------------------------------------------------------
@@ -107,9 +100,9 @@ def test_walk(transform_fxt):
     assert len(items) == 9
     temp = items[8]
     assert temp[0] == ["temperature"]
-    parm = temp[2]
-    assert isinstance(parm, dict)
-    assert "@parameters" in parm
+    param = temp[2]
+    assert isinstance(param, dict)
+    assert "@parameters" in param
 
 
 def test_merge_number_param_no_schema(num_param_fxt):
@@ -117,9 +110,12 @@ def test_merge_number_param_no_schema(num_param_fxt):
     s = num_faker.NO_DEFAULTS_SCHEMA
 
     params = xf.add_defaults(s, p)
+    assert isinstance(params, dict)
     assert "@type" in params
     assert "@parameters" in params
-    assert params["@type"] == "float"
+    ptype = params.get("@type", None)
+    assert ptype is not None
+    assert ptype == "float"
     p = params["@parameters"]
     assert len(p) == 2
     assert p["offset"] == 278.1
@@ -130,7 +126,7 @@ def test_merge_number_param_with_schema(num_param_fxt):
     p = num_param_fxt["params"]
     s = num_param_fxt["schema"]
     params = xf.add_defaults(s, p)
-
+    assert isinstance(params, dict)
     assert "@type" in params
     assert "@parameters" in params
     assert params["@type"] == "float"
@@ -144,7 +140,7 @@ def test_merge_string_param(str_param_fxt):
     p = str_param_fxt["params"]
     s = str_param_fxt["schema"]
     params = xf.add_defaults(s, p)
-
+    assert isinstance(params, dict)
     assert "@type" in params
     assert "@parameters" in params
     assert params["@type"] == "string"
@@ -158,7 +154,7 @@ def test_merge_composite_param(composite_param_fxt):
     p = composite_param_fxt["params"]
     s = composite_param_fxt["schema"]
     params = xf.add_defaults(s, p)
-
+    assert isinstance(params, dict)
     assert "@type" in params
     assert params["@type"] == "map"
     assert len(params) == 5
@@ -201,9 +197,9 @@ def test_transform_composite(transform_fxt):
     assert isinstance(accl, dict)
     z = accl.get("z", 0.0)
     assert z == pytest.approx(num_faker.VALUE * 2.0)
-    gir = t.get("giroscope", None)
-    assert isinstance(gir, list)
-    assert gir[2] == pytest.approx((num_faker.VALUE - 1000) / 10)
+    git = t.get("giroscope", None)
+    assert isinstance(git, list)
+    assert git[2] == pytest.approx((num_faker.VALUE - 1000) / 10)
     atmo = t.get("atmosphere", None)
     assert isinstance(atmo, list)
     assert atmo[0] == pytest.approx(num_faker.VALUE / 5)
