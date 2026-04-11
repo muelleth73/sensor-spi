@@ -6,6 +6,8 @@ import logging
 from collections.abc import Callable, Generator, Mapping
 from typing import Any
 
+from senspi import constants
+
 log = logging.getLogger(__name__)
 
 type SchemaType = Mapping[str, SchemaType | list[SchemaType] | str | float | int]
@@ -88,6 +90,16 @@ def walk(
         print(f"return on {type(value)}")
 
 
+def safe_divisor(x: float) -> float:
+    """
+    check a potential divisor is not too small, fix otherwise
+    """
+    if abs(x) < constants.MIN_DIVISOR:
+        x = constants.MIN_DIVISOR if x > 0 else -constants.MIN_DIVISOR
+        log.warning(f"divisor magniture too small, forced to {x}")
+    return x
+
+
 def transform(value: ValueType, param_map: ParameterType) -> ValueType:
     """Transform a value according to a map of parameters
 
@@ -130,7 +142,7 @@ def transform(value: ValueType, param_map: ParameterType) -> ValueType:
         p = param_map.get("@parameters", {})
         offset = p.get("offset", 0.0)
         multiplier = p.get("multiplier", 1.0)
-        divisor = p.get("divisor", 1.0)
+        divisor = safe_divisor(p.get("divisor", 1.0))
         new_value = (value - offset) * multiplier / divisor
         return new_value
     elif isinstance(value, str):

@@ -10,3 +10,5 @@ NUMBER_PARAMETERS = {
 }
 
 STRING_PARAMETERS = {}  # leave strings along
+
+MIN_DIVISOR = 1.0e-06

@@ -39,10 +39,11 @@ sensors:
     reader:
       driver: pushpull.ads1220
     transform:
-      offset: -2000
-      divisor: 2000
+      "@parameters":
+        offset: -2000
+        divisor: 2000
     renderer: right
-    address: /param/a/mixer/noise/volume
+    address: /param/b/mixer/noise/volume
   accel:
     reader:
       driver: accelerometer.mpu6050

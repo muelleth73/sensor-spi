@@ -1,17 +1,17 @@
 # ---- Project Info and Dependencies ----
 
 [project.urls]
-Repository = "https://github.com/muelleth73/sensorconfig"
+Repository = "https://github.com/muelleth73/sensor-spi"
 # Homepage = "https://..."
 # Documentation = "https://..."
 
 [project]
-name = "sensorconfig"
+name = "senspi"
 description = "changeme"
 authors = [{ name = "Thomas Mueller", email = "changeme@example.com" }]
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.11,<4.0"
+requires-python = ">=3.12,<4.0"
 dynamic = ["version"]
 
 # https://pypi.org/classifiers/
@@ -79,7 +79,7 @@ bump = true
 
 [tool.hatch.build.targets.wheel]
 # The source location for the package.
-packages = ["src/sensorconfig"]
+packages = ["src/senspi"]
 
 
 # ---- Settings ----
