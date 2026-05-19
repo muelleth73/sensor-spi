@@ -11,7 +11,7 @@ description = "changeme"
 authors = [{ name = "Thomas Mueller", email = "changeme@example.com" }]
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.12,<4.0"
+requires-python = ">=3.14,<4.0"
 dynamic = ["version"]
 
 # https://pypi.org/classifiers/
