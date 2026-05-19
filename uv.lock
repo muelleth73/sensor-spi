@@ -234,7 +234,7 @@ wheels = [
 ]
 
 [[package]]
-name = "sensorspi"
+name = "senspi"
 source = { editable = "." }
 dependencies = [
     { name = "docopt" },

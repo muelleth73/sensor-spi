@@ -67,29 +67,6 @@ def add_defaults(schema: SchemaType, parameters: ParameterType) -> ParameterType
         raise ValueError(f"add_defaults error unknown type {typ} in {schema}")
 
 
-def walk(
-    root: list[str], value: ValueType, param_map: ParameterType
-) -> Generator[tuple[list[str], ValueType, ParameterType]]:
-    #    print(f"\n\nroot={root}, \nval={value}, \nparms={param_map}")
-    if isinstance(value, dict):
-        assert isinstance(param_map, Mapping)
-        for k, v in filter(not_special, value.items()):
-            yield from walk(root + [k], v, param_map.get(k, None))
-    elif isinstance(value, list):
-        param_index = 0
-        for item in value:
-            if isinstance(param_map, list):
-                param = param_map[param_index]
-            else:
-                param = param_map
-            yield from walk(root + [str(param_index)], item, param)
-            param_index += 1
-    elif isinstance(value, str | int | float):
-        yield root, value, param_map
-    else:
-        print(f"return on {type(value)}")
-
-
 def safe_divisor(x: float) -> float:
     """
     check a potential divisor is not too small, fix otherwise

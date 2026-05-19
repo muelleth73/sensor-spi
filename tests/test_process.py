@@ -46,6 +46,10 @@ def composite_proc_builder_fxt(composite_param_fxt) -> xf.ParameterType:
 def test_make_composite_processor(composite_proc_builder_fxt):
     proc = sens.make_processor(composite_proc_builder_fxt)
     print(proc)
+    assert 5 == len(proc)
+    assert "atmosphere" in proc
+    atm = proc["atmosphere"]
+    assert "@items" in atm
 
 
 def test_process_composite(composite_proc_builder_fxt, osc_client_fxt):
@@ -53,4 +57,6 @@ def test_process_composite(composite_proc_builder_fxt, osc_client_fxt):
     value = composite_faker.make_value(composite_faker.SCHEMA)
     sender = osc_client_fxt
     sens.process(proc, sender, value)
-    print(sender.get_history())
+    hist = sender.get_history()
+    assert 5 == len(hist)
+    assert "test" == hist[3][1]
