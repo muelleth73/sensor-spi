@@ -3,7 +3,7 @@ Fill in default values, transform raw readouts.
 """
 
 import logging
-from collections.abc import Callable, Generator, Mapping
+from collections.abc import Callable, Mapping
 from typing import Any
 
 from senspi import constants
