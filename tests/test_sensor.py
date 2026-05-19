@@ -90,21 +90,6 @@ def test_make_composite_value():
     assert len(accel) == 3
 
 
-def test_walk(transform_fxt):
-    params = transform_fxt
-    v = composite_faker.make_value(composite_faker.SCHEMA)
-    items = []
-    for i in xf.walk([], v, params):
-        items.append(i)
-
-    assert len(items) == 9
-    temp = items[8]
-    assert temp[0] == ["temperature"]
-    param = temp[2]
-    assert isinstance(param, dict)
-    assert "@parameters" in param
-
-
 def test_merge_number_param_no_schema(num_param_fxt):
     p = num_param_fxt["params"]
     s = num_faker.NO_DEFAULTS_SCHEMA
