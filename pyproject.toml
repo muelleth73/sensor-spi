@@ -84,7 +84,7 @@ packages = ["src/senspi"]
 [tool.ruff]
 # Set as desired, typically 88 (black standard) or 100 (wide).
 line-length = 100
-target-version = "py312"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = [
@@ -162,6 +162,6 @@ failOnWarnings = false
 python_files = ["*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-testpaths = ["src", "tests"]
+testpaths = ["tests"]
 norecursedirs = []
 filterwarnings = []
